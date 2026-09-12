@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">ProInjector</string>
-    <string name="login_title">⚡ PRO INJECTOR v2.0</string>
+    <string name="login_title">⚡ PRO INJECTOR v2.5 Ultra</string>
     <string name="login_subtitle">Kernel-level Memory Injection &amp; Mod Engine</string>
     <string name="username_hint">Username</string>
     <string name="password_hint">Password</string>

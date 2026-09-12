@@ -4,6 +4,12 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/dock_pill_fab"
     android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:text="⚡ SMMTor SEO"
-    style="@style/Widget.Material3.ExtendedFloatingActionButton.Icon.Primary" />
+    android:layout_height="48dp"
+    android:text="⚡ ProInjector"
+    android:textColor="@color/neon_cyan"
+    app:backgroundTint="@color/bg_card"
+    app:strokeColor="@color/neon_cyan"
+    app:strokeWidth="1.2dp"
+    app:cornerRadius="24dp"
+    app:elevation="6dp"
+    style="@style/Widget.Material3.ExtendedFloatingActionButton.Surface" />

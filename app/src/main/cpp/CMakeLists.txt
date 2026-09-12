@@ -7,6 +7,11 @@ add_library(
     injector.cpp
 )
 
+add_executable(
+    mem_daemon
+    daemon.cpp
+)
+
 find_library(
     log-lib
     log
@@ -14,5 +19,10 @@ find_library(
 
 target_link_libraries(
     injector
+    ${log-lib}
+)
+
+target_link_libraries(
+    mem_daemon
     ${log-lib}
 )

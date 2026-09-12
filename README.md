@@ -26,12 +26,16 @@ appp/
         │       └── themes.xml            # Application styling & themes
         ├── java/com/pro/injector/
         │   ├── LoginActivity.kt          # Auth interface, root & overlay permission flow
-        │   ├── FloatingService.kt        # Draggable floating icon & overlay mod-menu
-        │   └── NativeBridge.kt           # JNI interface (Kotlin ⮂ C++)
+        │   ├── FloatingService.kt        # Draggable floating icon & multi-tab mod-menu
+        │   ├── NativeBridge.kt           # In-process JNI interface (Kotlin ⮂ C++)
+        │   ├── RootDaemonBridge.kt       # UID 0 Root Daemon IPC manager (su -c pipe)
+        │   ├── EspCanvasView.kt          # 60 FPS Transparent canvas visualization
+        │   └── EspOverlayService.kt      # Foreground overlay rendering service
         └── cpp/
-            ├── CMakeLists.txt            # NDK CMake build script
+            ├── CMakeLists.txt            # NDK CMake build script (libinjector.so & mem_daemon)
             ├── offsets.h                 # Target library definition & offset table
-            └── injector.cpp              # Direct /proc/[pid]/mem read/write engine
+            ├── injector.cpp              # Direct /proc/[pid]/mem read/write engine (JNI)
+            └── daemon.cpp                # Standalone root daemon executable (UID 0)
 ```
 
 ---

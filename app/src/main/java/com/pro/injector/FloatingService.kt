@@ -117,6 +117,15 @@ class FloatingService : Service() {
 
     private fun initNativeEngine() {
         if (targetPid > 0) {
+            // First attempt: Standalone Root Daemon (UID 0 execution via su)
+            val daemonOk = RootDaemonBridge.init(applicationContext, targetPid)
+            if (daemonOk && RootDaemonBridge.isRootDaemonActive()) {
+                isEngineReady = true
+                Toast.makeText(this, "✓ Root Daemon active (UID 0) • PID: $targetPid", Toast.LENGTH_SHORT).show()
+                return
+            }
+
+            // Fallback: In-process JNI NativeBridge
             isEngineReady = NativeBridge.init(targetPid)
             if (isEngineReady) {
                 if (NativeBridge.isSupported()) {
@@ -149,6 +158,7 @@ class FloatingService : Service() {
             gravity = Gravity.TOP or Gravity.START
             x = 40
             y = 160
+            windowAnimations = 0 // Zero animations for instant, snappy response
         }
 
         val inflater = LayoutInflater.from(this)
@@ -195,33 +205,39 @@ class FloatingService : Service() {
             stopSelf()
         }
 
-        // Google NavigationRailView
+        // Tab Navigation Containers
+        val tabDashboard = v.findViewById<View>(R.id.tab_container_dashboard)
+        val tabCombat = v.findViewById<View>(R.id.tab_container_combat)
+        val tabVisuals = v.findViewById<View>(R.id.tab_container_visuals)
+        val tabScripts = v.findViewById<View>(R.id.tab_container_scripts)
+        val tabProcess = v.findViewById<View>(R.id.tab_container_process)
+        val tabSettings = v.findViewById<View>(R.id.tab_container_settings)
+
+        fun selectTab(target: View?) {
+            val allTabs = listOf(tabDashboard, tabCombat, tabVisuals, tabScripts, tabProcess, tabSettings)
+            allTabs.forEach { tab ->
+                tab?.visibility = if (tab == target) View.VISIBLE else View.GONE
+            }
+        }
+
+        // Google NavigationRailView Tab Selection
         val navRail = v.findViewById<NavigationRailView>(R.id.nav_rail)
         navRail.setOnItemSelectedListener { item ->
             when (item.itemId) {
-                R.id.nav_dashboard -> {
-                    Toast.makeText(this, "Dashboard: All Live C++ Features", Toast.LENGTH_SHORT).show()
-                }
-                R.id.nav_combat -> {
-                    Toast.makeText(this, "Combat: God Mode, Ammo, No Recoil", Toast.LENGTH_SHORT).show()
-                }
-                R.id.nav_visuals -> {
-                    Toast.makeText(this, "Visuals: Radar ESP, Hitbox", Toast.LENGTH_SHORT).show()
-                }
+                R.id.nav_dashboard -> selectTab(tabDashboard)
+                R.id.nav_combat -> selectTab(tabCombat)
+                R.id.nav_visuals -> selectTab(tabVisuals)
+                R.id.nav_scripts -> selectTab(tabScripts)
                 R.id.nav_process -> {
+                    selectTab(tabProcess)
                     performPidRescan()
                 }
-                R.id.nav_scripts -> {
-                    Toast.makeText(this, "Native C++ /proc/mem direct patch", Toast.LENGTH_SHORT).show()
-                }
-                R.id.nav_settings -> {
-                    Toast.makeText(this, "Google Material 3 Theme", Toast.LENGTH_SHORT).show()
-                }
+                R.id.nav_settings -> selectTab(tabSettings)
             }
             true
         }
 
-        // Official Google MaterialSwitch Configuration - Connected Live to NativeBridge (C++)
+        // Live JNI Feature Switches (Indexes 0..7)
         val switches = arrayOf(
             v.findViewById<MaterialSwitch>(R.id.sw_god_mode),       // Feature 0: God Mode
             v.findViewById<MaterialSwitch>(R.id.sw_infinite_ammo),   // Feature 1: Infinite Ammo
@@ -238,15 +254,32 @@ class FloatingService : Service() {
             "Teleport", "Anti-Aim", "Radar ESP", "Magic Bullet"
         )
 
+        val swMasterEsp = v.findViewById<MaterialSwitch>(R.id.sw_master_esp)
+        val swRadar = v.findViewById<MaterialSwitch>(R.id.sw_radar)
+
+        swMasterEsp?.isChecked = switchStates[6]
+        swMasterEsp?.setOnCheckedChangeListener { _, isChecked ->
+            if (swRadar?.isChecked != isChecked) {
+                swRadar?.isChecked = isChecked
+            }
+        }
+
         switches.forEachIndexed { index, sw ->
             sw?.isChecked = switchStates[index]
             sw?.setOnCheckedChangeListener { _, isChecked ->
                 switchStates[index] = isChecked
-                val ok = NativeBridge.setFeature(index, isChecked)
+                val ok = if (RootDaemonBridge.isRootDaemonActive()) {
+                    RootDaemonBridge.setFeature(index, isChecked)
+                } else {
+                    NativeBridge.setFeature(index, isChecked)
+                }
                 val status = if (isChecked) "ENABLED" else "DISABLED"
 
                 // Radar ESP (Feature 6): Start/Stop Visual Canvas Animation Overlay
                 if (index == 6) {
+                    if (swMasterEsp?.isChecked != isChecked) {
+                        swMasterEsp?.isChecked = isChecked
+                    }
                     val overlayIntent = Intent(this, EspOverlayService::class.java)
                     if (isChecked) {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -259,12 +292,50 @@ class FloatingService : Service() {
                     }
                 }
 
+                updateStatusUI()
+
                 if (ok) {
                     Toast.makeText(this, "C++ Live: ${featureNames[index]} $status", Toast.LENGTH_SHORT).show()
                 } else if (isChecked) {
-                    Toast.makeText(this, "Notice: ${featureNames[index]} $status (Overlay Active)", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Notice: ${featureNames[index]} $status", Toast.LENGTH_SHORT).show()
                 }
             }
+        }
+
+        // Visuals Tab: ESP Customization Switches
+
+        v.findViewById<MaterialSwitch>(R.id.sw_esp_box)?.setOnCheckedChangeListener { _, isChecked ->
+            EspConfig.isBoxEnabled = isChecked
+        }
+        v.findViewById<MaterialSwitch>(R.id.sw_esp_ring)?.setOnCheckedChangeListener { _, isChecked ->
+            EspConfig.isRingAnimEnabled = isChecked
+        }
+        v.findViewById<MaterialSwitch>(R.id.sw_esp_skel)?.setOnCheckedChangeListener { _, isChecked ->
+            EspConfig.isSkelEnabled = isChecked
+        }
+        v.findViewById<MaterialSwitch>(R.id.sw_esp_hp)?.setOnCheckedChangeListener { _, isChecked ->
+            EspConfig.isHpEnabled = isChecked
+        }
+        v.findViewById<MaterialSwitch>(R.id.sw_esp_tracer)?.setOnCheckedChangeListener { _, isChecked ->
+            EspConfig.isTracerEnabled = isChecked
+        }
+        v.findViewById<MaterialSwitch>(R.id.sw_esp_dist)?.setOnCheckedChangeListener { _, isChecked ->
+            EspConfig.isDistanceEnabled = isChecked
+        }
+
+
+        // Settings Tab: Transparency (Alpha) Chips
+        v.findViewById<Chip>(R.id.chip_opacity_50)?.setOnClickListener {
+            windowParams.alpha = 0.50f
+            wm.updateViewLayout(windowView, windowParams)
+        }
+        v.findViewById<Chip>(R.id.chip_opacity_80)?.setOnClickListener {
+            windowParams.alpha = 0.80f
+            wm.updateViewLayout(windowView, windowParams)
+        }
+        v.findViewById<Chip>(R.id.chip_opacity_100)?.setOnClickListener {
+            windowParams.alpha = 1.00f
+            wm.updateViewLayout(windowView, windowParams)
         }
 
         // Re-Scan PID Button
@@ -296,6 +367,7 @@ class FloatingService : Service() {
             gravity = Gravity.TOP or Gravity.START
             x = 30
             y = 200
+            windowAnimations = 0 // Zero animations
         }
 
         val inflater = LayoutInflater.from(this)
@@ -379,15 +451,47 @@ class FloatingService : Service() {
             val txtSub = v.findViewById<TextView>(R.id.txt_status_sub)
             val chipStatus = v.findViewById<Chip>(R.id.chip_engine_status)
 
+            val txtDashPid = v.findViewById<TextView>(R.id.txt_dash_pid)
+            val txtDashMemory = v.findViewById<TextView>(R.id.txt_dash_memory)
+            val txtDashHooks = v.findViewById<TextView>(R.id.txt_dash_hooks)
+            val txtDiagMempath = v.findViewById<TextView>(R.id.txt_diag_mempath)
+
+            val activeCount = switchStates.count { it }
+            txtDashHooks?.text = "$activeCount / 8"
+
+            val isDaemon = RootDaemonBridge.isRootDaemonActive()
+            val libReady = if (isDaemon) RootDaemonBridge.isSupported() else (targetPid > 0 && NativeBridge.isSupported())
+            val baseAddr = if (isDaemon) RootDaemonBridge.currentBaseAddress else "Auto-Mapped"
+
             if (targetPid > 0) {
-                val libReady = NativeBridge.isSupported()
-                txtTitle?.text = if (libReady) "Memory Engine: Active & Hooked" else "Memory Engine: Attached (Waiting lib)"
-                txtSub?.text = "Target: $targetPackage • PID: $targetPid • /proc/$targetPid/mem"
-                chipStatus?.text = if (libReady) "HOOKED (PID: $targetPid)" else "PID: $targetPid"
+                txtTitle?.text = if (isDaemon) {
+                    "Memory Engine: Root Daemon (UID 0 Active)"
+                } else if (libReady) {
+                    "Memory Engine: In-Process JNI Hooked"
+                } else {
+                    "Memory Engine: Attached (Waiting lib)"
+                }
+                txtSub?.text = "Target: $targetPackage • PID: $targetPid"
+                chipStatus?.text = if (isDaemon) "ROOT (UID 0)" else if (libReady) "HOOKED (PID: $targetPid)" else "PID: $targetPid"
+
+                txtDashPid?.text = "$targetPid"
+                txtDashMemory?.text = if (isDaemon) "ROOT UID 0" else if (libReady) "HOOKED" else "ATTACHED"
+                txtDiagMempath?.text = if (isDaemon) {
+                    "/proc/$targetPid/mem (Root Daemon UID 0 • Permitted)"
+                } else {
+                    "/proc/$targetPid/mem (In-Process pread/pwrite)"
+                }
+
+                val txtDiagLib = v.findViewById<TextView>(R.id.txt_diag_lib)
+                txtDiagLib?.text = "libil2cpp.so (Base: $baseAddr)"
             } else {
                 txtTitle?.text = "Memory Engine: Disconnected"
                 txtSub?.text = "Target: $targetPackage • PID: Not Detected"
                 chipStatus?.text = "DISCONNECTED"
+
+                txtDashPid?.text = "DETACHED"
+                txtDashMemory?.text = "READY"
+                txtDiagMempath?.text = "/proc/[pid]/mem (pread/pwrite)"
             }
         }
     }
@@ -395,7 +499,8 @@ class FloatingService : Service() {
     private fun performPidRescan() {
         Thread {
             val newPid = try {
-                val p = Runtime.getRuntime().exec(arrayOf("su", "-c", "pidof $targetPackage"))
+                val cmd = "pidof $targetPackage || pgrep -f $targetPackage || ps -A | grep '$targetPackage' | awk '{print \$2}'"
+                val p = Runtime.getRuntime().exec(arrayOf("su", "-c", cmd))
                 p.waitFor()
                 val text = p.inputStream.bufferedReader().readText().trim()
                 if (text.isNotEmpty()) text.split("\\s+".toRegex())[0].toIntOrNull() ?: 0 else 0
@@ -427,8 +532,13 @@ class FloatingService : Service() {
 
         // Restore memory and stop persistence loop
         for (i in 0 until 8) {
-            NativeBridge.setFeature(i, false)
+            if (RootDaemonBridge.isRootDaemonActive()) {
+                RootDaemonBridge.setFeature(i, false)
+            } else {
+                NativeBridge.setFeature(i, false)
+            }
         }
+        RootDaemonBridge.stop()
         NativeBridge.stop()
 
         if (isMinimized) {

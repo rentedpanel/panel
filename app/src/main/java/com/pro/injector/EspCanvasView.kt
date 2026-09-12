@@ -10,6 +10,16 @@ import android.graphics.Typeface
 import android.view.View
 import kotlin.random.Random
 
+object EspConfig {
+    @Volatile var isBoxEnabled: Boolean = true
+    @Volatile var isSkelEnabled: Boolean = true
+    @Volatile var isHpEnabled: Boolean = true
+    @Volatile var isRingAnimEnabled: Boolean = true
+    @Volatile var isDistanceEnabled: Boolean = true
+    @Volatile var isTracerEnabled: Boolean = true
+    @Volatile var ringSpeedMultiplier: Float = 1.0f
+}
+
 class EspCanvasView(
     ctx: Context,
     private val screenWidth: Float,
@@ -60,12 +70,12 @@ class EspCanvasView(
     }
 
     private val badgePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.argb(190, 16, 24, 40)
+        color = Color.argb(200, 10, 14, 23)
         style = Paint.Style.FILL
     }
 
     private val badgeBorder = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.argb(200, 0, 255, 170)
+        color = Color.argb(220, 0, 229, 255)
         style = Paint.Style.STROKE
         strokeWidth = 1.5f
     }
@@ -104,7 +114,7 @@ class EspCanvasView(
     }
 
     // Ring Animation Data
-    private data class RingAnim(var t: Float = 0f, val speed: Float = 0.032f)
+    private data class RingAnim(var t: Float = 0f, var speed: Float = 0.032f)
     private val ringAnims = mutableMapOf<Int, RingAnim>()
 
     private var pulse = 0f
@@ -114,7 +124,6 @@ class EspCanvasView(
     private val originY get() = screenHeight * 0.5f
 
     init {
-        // Required for BlurMaskFilter and smooth glow rendering
         setLayerType(LAYER_TYPE_SOFTWARE, null)
         initSimulatedTargets()
     }
@@ -169,7 +178,6 @@ class EspCanvasView(
             drawTarget(canvas, target, i)
         }
 
-        // 60 FPS continuous animation loop
         postInvalidateOnAnimation()
     }
 
@@ -197,7 +205,7 @@ class EspCanvasView(
             t.vy = -t.vy
         }
 
-        // Dynamic distance oscillation to showcase color changes
+        // Distance oscillation
         t.dist += t.distDir
         if (t.dist > 65f) {
             t.dist = 65f
@@ -209,95 +217,107 @@ class EspCanvasView(
     }
 
     private fun drawTopBadge(canvas: Canvas) {
-        val badgeW = 420f
+        val badgeW = 460f
         val badgeH = 50f
         val left = (screenWidth - badgeW) * 0.5f
-        val top = 80f
+        val top = 70f
         val right = left + badgeW
         val bottom = top + badgeH
 
-        canvas.drawRoundRect(left, top, right, bottom, 12f, 12f, badgePaint)
-        canvas.drawRoundRect(left, top, right, bottom, 12f, 12f, badgeBorder)
+        canvas.drawRoundRect(left, top, right, bottom, 14f, 14f, badgePaint)
+        canvas.drawRoundRect(left, top, right, bottom, 14f, 14f, badgeBorder)
 
-        val badgeText = "⚡ ESP CANVAS ENGINE • ACTIVE (60 FPS)"
+        val badgeText = "⚡ PROINJECTOR ESP ENGINE • 60 FPS"
         val textWidth = textPaint.measureText(badgeText)
         val textX = left + (badgeW - textWidth) * 0.5f
-        val textY = top + 32f
+        val textY = top + 33f
 
         canvas.drawText(badgeText, textX, textY, textPaint)
     }
 
     private fun drawTarget(canvas: Canvas, e: TargetEntity, idx: Int) {
         val anim = ringAnims[idx] ?: RingAnim().also { ringAnims[idx] = it }
+        anim.speed = 0.032f * EspConfig.ringSpeedMultiplier
 
         // Distance-based dynamic color coding
         val boxColor = when {
-            e.dist < 20f -> Color.argb(220, 255, 59, 48)   // Red (<20m)
-            e.dist < 50f -> Color.argb(220, 255, 149, 0)  // Orange (20-50m)
-            else -> Color.argb(220, 255, 214, 10)         // Yellow (>50m)
+            e.dist < 20f -> Color.argb(230, 255, 59, 86)   // Red (<20m)
+            e.dist < 50f -> Color.argb(230, 255, 184, 0)  // Amber (20-50m)
+            else -> Color.argb(230, 0, 255, 157)          // Emerald (>50m)
         }
 
         val bodyH = e.footY - e.headY
         val boxW = bodyH * 0.35f
 
         // Tracer line: screen origin -> target head
-        canvas.drawLine(originX, originY, e.headX, e.headY, tracerPaint)
+        if (EspConfig.isTracerEnabled) {
+            canvas.drawLine(originX, originY, e.headX, e.headY, tracerPaint)
+        }
 
         // Health (HP) bar above head
-        val hpBarW = boxW * 2f
-        val hpBarH = 7f
-        val hpTop = e.headY - 18f
-        val hpBottom = hpTop + hpBarH
-        val hpLeft = e.headX - boxW
-        val hpRight = e.headX + boxW
+        if (EspConfig.isHpEnabled) {
+            val hpBarW = boxW * 2f
+            val hpBarH = 7f
+            val hpTop = e.headY - 18f
+            val hpBottom = hpTop + hpBarH
+            val hpLeft = e.headX - boxW
+            val hpRight = e.headX + boxW
 
-        canvas.drawRect(hpLeft, hpTop, hpRight, hpBottom, hpBgPaint)
-        val fillWidth = hpBarW * (e.hp / 100f).coerceIn(0f, 1f)
-        hpFillPaint.color = when {
-            e.hp > 50f -> Color.argb(230, 52, 199, 89)
-            e.hp > 25f -> Color.argb(230, 255, 149, 0)
-            else -> Color.argb(230, 255, 59, 48)
+            canvas.drawRect(hpLeft, hpTop, hpRight, hpBottom, hpBgPaint)
+            val fillWidth = hpBarW * (e.hp / 100f).coerceIn(0f, 1f)
+            hpFillPaint.color = when {
+                e.hp > 50f -> Color.argb(230, 0, 255, 157)
+                e.hp > 25f -> Color.argb(230, 255, 184, 0)
+                else -> Color.argb(230, 255, 59, 86)
+            }
+            canvas.drawRect(hpLeft, hpTop, hpLeft + fillWidth, hpBottom, hpFillPaint)
         }
-        canvas.drawRect(hpLeft, hpTop, hpLeft + fillWidth, hpBottom, hpFillPaint)
 
         // Bounding box & stylized corner brackets
-        boxPaint.color = Color.argb(70, Color.red(boxColor), Color.green(boxColor), Color.blue(boxColor))
-        canvas.drawRect(e.headX - boxW, e.headY, e.headX + boxW, e.footY, boxPaint)
-        drawCorners(canvas, e.headX - boxW, e.headY, e.headX + boxW, e.footY, boxColor)
-
-        // Dashed Skeleton spine (Head to Foot)
-        canvas.drawLine(e.headX, e.headY, e.footX, e.footY, skelPaint)
-
-        // Distance Tag
-        val distStr = "${e.dist.toInt()}m"
-        textPaint.color = boxColor
-        canvas.drawText(distStr, e.headX + boxW + 8f, e.headY + 16f, textPaint)
-
-        // Animated traveling ring
-        val t = anim.t
-        val rx = lerp(originX, e.headX, t)
-        val ry = lerp(originY, e.headY, t)
-        val baseRadius = lerp(30f, 12f, t) + pulse * (1f - t)
-
-        // Glowing blur ring
-        ringGlowPaint.color = Color.argb((70 * (1f - t * 0.4f)).toInt(), 0, 255, 150)
-        canvas.drawCircle(rx, ry, baseRadius + 6f, ringGlowPaint)
-
-        // Inner solid ring
-        ringPaint.color = Color.argb(lerp(120f, 255f, t).toInt(), 0, 255, 150)
-        canvas.drawCircle(rx, ry, baseRadius, ringPaint)
-
-        // Impact flash dot at target head upon arrival
-        if (t > 0.88f) {
-            val alpha = (((t - 0.88f) / 0.12f) * 255).toInt().coerceIn(0, 255)
-            dotPaint.color = Color.argb(alpha, 255, 59, 48)
-            canvas.drawCircle(e.headX, e.headY, 6f + pulse, dotPaint)
+        if (EspConfig.isBoxEnabled) {
+            boxPaint.color = Color.argb(60, Color.red(boxColor), Color.green(boxColor), Color.blue(boxColor))
+            canvas.drawRect(e.headX - boxW, e.headY, e.headX + boxW, e.footY, boxPaint)
+            drawCorners(canvas, e.headX - boxW, e.headY, e.headX + boxW, e.footY, boxColor)
         }
 
-        // Advance animation time
-        anim.t += anim.speed
-        if (anim.t > 1f) {
-            anim.t = 0f
+        // Dashed Skeleton spine (Head to Foot)
+        if (EspConfig.isSkelEnabled) {
+            canvas.drawLine(e.headX, e.headY, e.footX, e.footY, skelPaint)
+        }
+
+        // Distance Tag
+        if (EspConfig.isDistanceEnabled) {
+            val distStr = "${e.dist.toInt()}m"
+            textPaint.color = boxColor
+            canvas.drawText(distStr, e.headX + boxW + 8f, e.headY + 16f, textPaint)
+        }
+
+        // Animated traveling ring & impact dot
+        if (EspConfig.isRingAnimEnabled) {
+            val t = anim.t
+            val rx = lerp(originX, e.headX, t)
+            val ry = lerp(originY, e.headY, t)
+            val baseRadius = lerp(30f, 12f, t) + pulse * (1f - t)
+
+            // Glowing blur ring
+            ringGlowPaint.color = Color.argb((75 * (1f - t * 0.4f)).toInt(), 0, 255, 157)
+            canvas.drawCircle(rx, ry, baseRadius + 6f, ringGlowPaint)
+
+            // Inner solid ring
+            ringPaint.color = Color.argb(lerp(120f, 255f, t).toInt(), 0, 255, 157)
+            canvas.drawCircle(rx, ry, baseRadius, ringPaint)
+
+            // Impact flash dot at target head upon arrival
+            if (t > 0.88f) {
+                val alpha = (((t - 0.88f) / 0.12f) * 255).toInt().coerceIn(0, 255)
+                dotPaint.color = Color.argb(alpha, 255, 59, 86)
+                canvas.drawCircle(e.headX, e.headY, 6f + pulse, dotPaint)
+            }
+
+            anim.t += anim.speed
+            if (anim.t > 1f) {
+                anim.t = 0f
+            }
         }
     }
 

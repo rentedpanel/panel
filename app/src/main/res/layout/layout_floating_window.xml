@@ -4,10 +4,11 @@
     android:id="@+id/window_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    app:cardCornerRadius="16dp"
-    app:cardElevation="6dp"
-    app:strokeWidth="1dp"
-    app:strokeColor="?attr/colorOutlineVariant"
+    app:cardBackgroundColor="@color/bg_surface"
+    app:cardCornerRadius="18dp"
+    app:cardElevation="8dp"
+    app:strokeColor="@color/card_border"
+    app:strokeWidth="1.2dp"
     style="@style/Widget.Material3.CardView.Elevated">
 
     <LinearLayout
@@ -15,14 +16,14 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <!-- Google MaterialToolbar for Window Header -->
+        <!-- Static Window Header Toolbar -->
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/window_titlebar"
             android:layout_width="match_parent"
             android:layout_height="48dp"
-            android:background="?attr/colorSurface"
-            app:contentInsetStart="12dp"
-            app:contentInsetEnd="8dp">
+            android:background="@color/bg_void"
+            app:contentInsetEnd="8dp"
+            app:contentInsetStart="12dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -34,26 +35,40 @@
                     android:layout_width="22dp"
                     android:layout_height="22dp"
                     android:layout_marginEnd="8dp"
-                    android:src="@drawable/ic_brand_logo" />
+                    android:src="@drawable/ic_brand_logo"
+                    app:tint="@color/neon_cyan" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="ProInjector"
-                    android:textAppearance="?attr/textAppearanceTitleMedium"
-                    android:textColor="?attr/colorPrimary"
+                    android:textColor="@color/neon_cyan"
+                    android:textSize="14sp"
                     android:textStyle="bold" />
 
-                <!-- Status Chip -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4dp"
+                    android:text="v2.5"
+                    android:textColor="@color/text_muted"
+                    android:textSize="11sp" />
+
+                <!-- Static Status Pill -->
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chip_engine_status"
+                    style="@style/Widget.Material3.Chip.Suggestion"
                     android:layout_width="wrap_content"
                     android:layout_height="28dp"
-                    android:layout_marginStart="8dp"
-                    android:text="LIVE C++"
+                    android:layout_marginStart="10dp"
                     android:checkable="false"
                     android:clickable="false"
-                    style="@style/Widget.Material3.Chip.Suggestion" />
+                    android:text="ONLINE"
+                    android:textColor="@color/neon_emerald"
+                    app:chipBackgroundColor="@color/bg_card"
+                    app:chipCornerRadius="8dp"
+                    app:chipStrokeColor="@color/neon_emerald"
+                    app:chipStrokeWidth="0.8dp" />
 
                 <View
                     android:layout_width="0dp"
@@ -63,33 +78,36 @@
                 <!-- Window Controls -->
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btn_window_minimize"
-                    android:layout_width="36dp"
-                    android:layout_height="36dp"
+                    style="@style/Widget.Material3.Button.IconButton"
+                    android:layout_width="34dp"
+                    android:layout_height="34dp"
                     android:padding="6dp"
                     app:icon="@drawable/ic_minimize"
                     app:iconGravity="textStart"
                     app:iconPadding="0dp"
-                    style="@style/Widget.Material3.Button.IconButton" />
+                    app:iconTint="@color/text_secondary" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btn_window_maximize"
-                    android:layout_width="36dp"
-                    android:layout_height="36dp"
+                    style="@style/Widget.Material3.Button.IconButton"
+                    android:layout_width="34dp"
+                    android:layout_height="34dp"
                     android:padding="6dp"
                     app:icon="@drawable/ic_maximize"
                     app:iconGravity="textStart"
                     app:iconPadding="0dp"
-                    style="@style/Widget.Material3.Button.IconButton" />
+                    app:iconTint="@color/text_secondary" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btn_window_close"
-                    android:layout_width="36dp"
-                    android:layout_height="36dp"
+                    style="@style/Widget.Material3.Button.IconButton"
+                    android:layout_width="34dp"
+                    android:layout_height="34dp"
                     android:padding="6dp"
                     app:icon="@drawable/ic_close"
                     app:iconGravity="textStart"
                     app:iconPadding="0dp"
-                    style="@style/Widget.Material3.Button.IconButton" />
+                    app:iconTint="@color/neon_crimson" />
 
             </LinearLayout>
 
@@ -97,163 +115,481 @@
 
         <com.google.android.material.divider.MaterialDivider
             android:layout_width="match_parent"
-            android:layout_height="1dp" />
+            android:layout_height="1dp"
+            app:dividerColor="@color/card_border" />
 
-        <!-- Main Body: NavigationRailView + Live Menu Switch Cards -->
+        <!-- Main Body: NavigationRailView + Multi-Tab View Containers -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="horizontal">
 
-            <!-- Google Material3 NavigationRailView -->
+            <!-- Cyberpunk Navigation Rail -->
             <com.google.android.material.navigationrail.NavigationRailView
                 android:id="@+id/nav_rail"
-                android:layout_width="56dp"
+                style="@style/Widget.Material3.NavigationRailView"
+                android:layout_width="54dp"
                 android:layout_height="match_parent"
-                app:menu="@menu/menu_navigation_rail"
+                android:background="@color/bg_void"
+                app:itemActiveIndicatorStyle="@null"
+                app:itemIconTint="@color/neon_cyan"
                 app:labelVisibilityMode="unlabeled"
-                app:menuGravity="top"
-                style="@style/Widget.Material3.NavigationRailView" />
+                app:menu="@menu/menu_navigation_rail"
+                app:menuGravity="top" />
 
             <com.google.android.material.divider.MaterialDivider
                 android:layout_width="1dp"
-                android:layout_height="match_parent" />
+                android:layout_height="match_parent"
+                app:dividerColor="@color/card_border" />
 
-            <!-- Main Feature Switches Area (Scrollable Card Grid) -->
-            <ScrollView
+            <!-- Dynamic Content Area -->
+            <FrameLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:background="?attr/colorSurfaceContainerLowest"
-                android:fillViewport="true">
+                android:background="@color/bg_surface">
 
-                <LinearLayout
+                <!-- TAB 1: DASHBOARD OVERVIEW -->
+                <ScrollView
+                    android:id="@+id/tab_container_dashboard"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="12dp">
+                    android:layout_height="match_parent"
+                    android:fillViewport="true"
+                    android:visibility="visible">
 
-                    <!-- 2x2 Grid Row 1 -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal">
+                        android:orientation="vertical"
+                        android:padding="12dp">
 
-                        <!-- Feature 0: God Mode -->
-                        <com.google.android.material.card.MaterialCardView
-                            android:layout_width="0dp"
+                        <!-- Telemetry Stats 3-Card Grid -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginEnd="6dp"
-                            android:layout_weight="1"
-                            app:cardCornerRadius="14dp"
-                            app:cardElevation="0dp"
-                            app:strokeWidth="1dp"
-                            app:strokeColor="?attr/colorOutlineVariant"
-                            style="@style/Widget.Material3.CardView.Filled">
+                            android:orientation="horizontal">
+
+                            <!-- Metric 1: PID -->
+                            <com.google.android.material.card.MaterialCardView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginEnd="4dp"
+                                android:layout_weight="1"
+                                app:cardBackgroundColor="@color/bg_card"
+                                app:cardCornerRadius="12dp"
+                                app:strokeColor="@color/card_border"
+                                app:strokeWidth="1dp">
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="vertical"
+                                    android:padding="10dp">
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="TARGET PID"
+                                        android:textColor="@color/text_muted"
+                                        android:textSize="9sp" />
+
+                                    <TextView
+                                        android:id="@+id/txt_dash_pid"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginTop="2dp"
+                                        android:text="DETACHED"
+                                        android:textColor="@color/neon_cyan"
+                                        android:textSize="13sp"
+                                        android:textStyle="bold" />
+                                </LinearLayout>
+                            </com.google.android.material.card.MaterialCardView>
+
+                            <!-- Metric 2: Engine -->
+                            <com.google.android.material.card.MaterialCardView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="4dp"
+                                android:layout_marginEnd="4dp"
+                                android:layout_weight="1"
+                                app:cardBackgroundColor="@color/bg_card"
+                                app:cardCornerRadius="12dp"
+                                app:strokeColor="@color/card_border"
+                                app:strokeWidth="1dp">
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="vertical"
+                                    android:padding="10dp">
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="MEMORY"
+                                        android:textColor="@color/text_muted"
+                                        android:textSize="9sp" />
+
+                                    <TextView
+                                        android:id="@+id/txt_dash_memory"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginTop="2dp"
+                                        android:text="READY"
+                                        android:textColor="@color/neon_emerald"
+                                        android:textSize="13sp"
+                                        android:textStyle="bold" />
+                                </LinearLayout>
+                            </com.google.android.material.card.MaterialCardView>
+
+                            <!-- Metric 3: Active Patches -->
+                            <com.google.android.material.card.MaterialCardView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="4dp"
+                                android:layout_weight="1"
+                                app:cardBackgroundColor="@color/bg_card"
+                                app:cardCornerRadius="12dp"
+                                app:strokeColor="@color/card_border"
+                                app:strokeWidth="1dp">
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="vertical"
+                                    android:padding="10dp">
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="ACTIVE HOOKS"
+                                        android:textColor="@color/text_muted"
+                                        android:textSize="9sp" />
+
+                                    <TextView
+                                        android:id="@+id/txt_dash_hooks"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginTop="2dp"
+                                        android:text="0 / 8"
+                                        android:textColor="@color/neon_amber"
+                                        android:textSize="13sp"
+                                        android:textStyle="bold" />
+                                </LinearLayout>
+                            </com.google.android.material.card.MaterialCardView>
+
+                        </LinearLayout>
+
+                        <!-- Quick Control Banner -->
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="14dp"
+                            android:layout_marginBottom="6dp"
+                            android:text="ESSENTIAL QUICK TOGGLES"
+                            android:textColor="@color/text_muted"
+                            android:textSize="11sp"
+                            android:textStyle="bold" />
+
+                        <!-- Row 1: God Mode & Infinite Ammo -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+
+                            <!-- God Mode Card -->
+                            <com.google.android.material.card.MaterialCardView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginEnd="4dp"
+                                android:layout_weight="1"
+                                app:cardBackgroundColor="@color/bg_card"
+                                app:cardCornerRadius="12dp"
+                                app:strokeColor="@color/card_border"
+                                app:strokeWidth="1dp">
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:gravity="center_vertical"
+                                    android:orientation="horizontal"
+                                    android:padding="10dp">
+
+                                    <LinearLayout
+                                        android:layout_width="0dp"
+                                        android:layout_height="wrap_content"
+                                        android:layout_weight="1"
+                                        android:orientation="vertical">
+
+                                        <TextView
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="God Mode"
+                                            android:textColor="@color/text_primary"
+                                            android:textSize="13sp"
+                                            android:textStyle="bold" />
+
+                                        <TextView
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="Health &amp; Armor Lock"
+                                            android:textColor="@color/text_secondary"
+                                            android:textSize="10sp" />
+                                    </LinearLayout>
+
+                                    <com.google.android.material.materialswitch.MaterialSwitch
+                                        android:id="@+id/sw_god_mode"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content" />
+                                </LinearLayout>
+                            </com.google.android.material.card.MaterialCardView>
+
+                            <!-- Infinite Ammo Card -->
+                            <com.google.android.material.card.MaterialCardView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="4dp"
+                                android:layout_weight="1"
+                                app:cardBackgroundColor="@color/bg_card"
+                                app:cardCornerRadius="12dp"
+                                app:strokeColor="@color/card_border"
+                                app:strokeWidth="1dp">
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:gravity="center_vertical"
+                                    android:orientation="horizontal"
+                                    android:padding="10dp">
+
+                                    <LinearLayout
+                                        android:layout_width="0dp"
+                                        android:layout_height="wrap_content"
+                                        android:layout_weight="1"
+                                        android:orientation="vertical">
+
+                                        <TextView
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="Infinite Ammo"
+                                            android:textColor="@color/text_primary"
+                                            android:textSize="13sp"
+                                            android:textStyle="bold" />
+
+                                        <TextView
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="Freeze Ammo Value"
+                                            android:textColor="@color/text_secondary"
+                                            android:textSize="10sp" />
+                                    </LinearLayout>
+
+                                    <com.google.android.material.materialswitch.MaterialSwitch
+                                        android:id="@+id/sw_infinite_ammo"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content" />
+                                </LinearLayout>
+                            </com.google.android.material.card.MaterialCardView>
+
+                        </LinearLayout>
+
+                        <!-- Row 2: Radar ESP & Speed Boost -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:orientation="horizontal">
+
+                            <!-- Radar ESP Card -->
+                            <com.google.android.material.card.MaterialCardView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginEnd="4dp"
+                                android:layout_weight="1"
+                                app:cardBackgroundColor="@color/bg_card"
+                                app:cardCornerRadius="12dp"
+                                app:strokeColor="@color/card_border"
+                                app:strokeWidth="1dp">
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:gravity="center_vertical"
+                                    android:orientation="horizontal"
+                                    android:padding="10dp">
+
+                                    <LinearLayout
+                                        android:layout_width="0dp"
+                                        android:layout_height="wrap_content"
+                                        android:layout_weight="1"
+                                        android:orientation="vertical">
+
+                                        <TextView
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="Radar ESP"
+                                            android:textColor="@color/text_primary"
+                                            android:textSize="13sp"
+                                            android:textStyle="bold" />
+
+                                        <TextView
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="Visual Overlay Engine"
+                                            android:textColor="@color/text_secondary"
+                                            android:textSize="10sp" />
+                                    </LinearLayout>
+
+                                    <com.google.android.material.materialswitch.MaterialSwitch
+                                        android:id="@+id/sw_radar"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content" />
+                                </LinearLayout>
+                            </com.google.android.material.card.MaterialCardView>
+
+                            <!-- Speed Boost Card -->
+                            <com.google.android.material.card.MaterialCardView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="4dp"
+                                android:layout_weight="1"
+                                app:cardBackgroundColor="@color/bg_card"
+                                app:cardCornerRadius="12dp"
+                                app:strokeColor="@color/card_border"
+                                app:strokeWidth="1dp">
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:gravity="center_vertical"
+                                    android:orientation="horizontal"
+                                    android:padding="10dp">
+
+                                    <LinearLayout
+                                        android:layout_width="0dp"
+                                        android:layout_height="wrap_content"
+                                        android:layout_weight="1"
+                                        android:orientation="vertical">
+
+                                        <TextView
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="Speed Boost"
+                                            android:textColor="@color/text_primary"
+                                            android:textSize="13sp"
+                                            android:textStyle="bold" />
+
+                                        <TextView
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="Movement Multiplier"
+                                            android:textColor="@color/text_secondary"
+                                            android:textSize="10sp" />
+                                    </LinearLayout>
+
+                                    <com.google.android.material.materialswitch.MaterialSwitch
+                                        android:id="@+id/sw_speed_boost"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content" />
+                                </LinearLayout>
+                            </com.google.android.material.card.MaterialCardView>
+
+                        </LinearLayout>
+
+                        <!-- Process Status Bottom Card -->
+                        <com.google.android.material.card.MaterialCardView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            app:cardBackgroundColor="@color/bg_surface_variant"
+                            app:cardCornerRadius="12dp"
+                            app:strokeColor="@color/card_border"
+                            app:strokeWidth="1dp">
 
                             <LinearLayout
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:gravity="center_vertical"
                                 android:orientation="horizontal"
-                                android:padding="12dp">
+                                android:padding="10dp">
+
+                                <ImageView
+                                    android:layout_width="24dp"
+                                    android:layout_height="24dp"
+                                    android:src="@drawable/ic_shield_check"
+                                    app:tint="@color/neon_emerald" />
 
                                 <LinearLayout
                                     android:layout_width="0dp"
                                     android:layout_height="wrap_content"
+                                    android:layout_marginStart="8dp"
                                     android:layout_weight="1"
                                     android:orientation="vertical">
 
                                     <TextView
+                                        android:id="@+id/txt_status_title"
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
-                                        android:text="God Mode"
-                                        android:textAppearance="?attr/textAppearanceTitleSmall"
+                                        android:text="Memory Engine: Ready"
+                                        android:textColor="@color/text_primary"
+                                        android:textSize="12sp"
                                         android:textStyle="bold" />
 
                                     <TextView
+                                        android:id="@+id/txt_status_sub"
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
-                                        android:layout_marginTop="2dp"
-                                        android:text="Health &amp; Armor Lock"
-                                        android:textAppearance="?attr/textAppearanceBodySmall"
-                                        android:textColor="?android:attr/textColorSecondary" />
+                                        android:text="Target: com.target.game • PID: --"
+                                        android:textColor="@color/text_secondary"
+                                        android:textSize="10sp" />
                                 </LinearLayout>
 
-                                <com.google.android.material.materialswitch.MaterialSwitch
-                                    android:id="@+id/sw_god_mode"
+                                <com.google.android.material.button.MaterialButton
+                                    android:id="@+id/btn_rescan_pid"
+                                    style="@style/Widget.Material3.Button.Tonal"
                                     android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content" />
-                            </LinearLayout>
-                        </com.google.android.material.card.MaterialCardView>
-
-                        <!-- Feature 1: Infinite Ammo -->
-                        <com.google.android.material.card.MaterialCardView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="6dp"
-                            android:layout_weight="1"
-                            app:cardCornerRadius="14dp"
-                            app:cardElevation="0dp"
-                            app:strokeWidth="1dp"
-                            app:strokeColor="?attr/colorOutlineVariant"
-                            style="@style/Widget.Material3.CardView.Filled">
-
-                            <LinearLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:gravity="center_vertical"
-                                android:orientation="horizontal"
-                                android:padding="12dp">
-
-                                <LinearLayout
-                                    android:layout_width="0dp"
-                                    android:layout_height="wrap_content"
-                                    android:layout_weight="1"
-                                    android:orientation="vertical">
-
-                                    <TextView
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:text="Infinite Ammo"
-                                        android:textAppearance="?attr/textAppearanceTitleSmall"
-                                        android:textStyle="bold" />
-
-                                    <TextView
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:layout_marginTop="2dp"
-                                        android:text="No Reload &amp; Freeze"
-                                        android:textAppearance="?attr/textAppearanceBodySmall"
-                                        android:textColor="?android:attr/textColorSecondary" />
-                                </LinearLayout>
-
-                                <com.google.android.material.materialswitch.MaterialSwitch
-                                    android:id="@+id/sw_infinite_ammo"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content" />
+                                    android:layout_height="36dp"
+                                    android:backgroundTint="@color/bg_card"
+                                    android:text="Re-Scan"
+                                    android:textColor="@color/neon_cyan"
+                                    android:textSize="11sp" />
                             </LinearLayout>
                         </com.google.android.material.card.MaterialCardView>
 
                     </LinearLayout>
+                </ScrollView>
 
-                    <!-- 2x2 Grid Row 2 -->
+                <!-- TAB 2: COMBAT MODULE -->
+                <ScrollView
+                    android:id="@+id/tab_container_combat"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:fillViewport="true"
+                    android:visibility="gone">
+
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:orientation="horizontal">
+                        android:orientation="vertical"
+                        android:padding="12dp">
 
-                        <!-- Feature 2: No Recoil -->
-                        <com.google.android.material.card.MaterialCardView
-                            android:layout_width="0dp"
+                        <TextView
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginEnd="6dp"
-                            android:layout_weight="1"
-                            app:cardCornerRadius="14dp"
-                            app:cardElevation="0dp"
-                            app:strokeWidth="1dp"
-                            app:strokeColor="?attr/colorOutlineVariant"
-                            style="@style/Widget.Material3.CardView.Filled">
+                            android:layout_marginBottom="8dp"
+                            android:text="COMBAT &amp; WEAPON MODIFIERS"
+                            android:textColor="@color/neon_cyan"
+                            android:textSize="11sp"
+                            android:textStyle="bold" />
+
+                        <!-- No Recoil Card -->
+                        <com.google.android.material.card.MaterialCardView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="8dp"
+                            app:cardBackgroundColor="@color/bg_card"
+                            app:cardCornerRadius="12dp"
+                            app:strokeColor="@color/card_border"
+                            app:strokeWidth="1dp">
 
                             <LinearLayout
                                 android:layout_width="match_parent"
@@ -272,16 +608,16 @@
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
                                         android:text="No Recoil"
-                                        android:textAppearance="?attr/textAppearanceTitleSmall"
+                                        android:textColor="@color/text_primary"
+                                        android:textSize="13sp"
                                         android:textStyle="bold" />
 
                                     <TextView
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
-                                        android:layout_marginTop="2dp"
-                                        android:text="Zero Shake &amp; Spread"
-                                        android:textAppearance="?attr/textAppearanceBodySmall"
-                                        android:textColor="?android:attr/textColorSecondary" />
+                                        android:text="Zero Shake &amp; Accuracy Stabilization"
+                                        android:textColor="@color/text_secondary"
+                                        android:textSize="11sp" />
                                 </LinearLayout>
 
                                 <com.google.android.material.materialswitch.MaterialSwitch
@@ -291,227 +627,15 @@
                             </LinearLayout>
                         </com.google.android.material.card.MaterialCardView>
 
-                        <!-- Feature 3: Speed Boost -->
+                        <!-- Magic Bullet Card -->
                         <com.google.android.material.card.MaterialCardView
-                            android:layout_width="0dp"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginStart="6dp"
-                            android:layout_weight="1"
-                            app:cardCornerRadius="14dp"
-                            app:cardElevation="0dp"
-                            app:strokeWidth="1dp"
-                            app:strokeColor="?attr/colorOutlineVariant"
-                            style="@style/Widget.Material3.CardView.Filled">
-
-                            <LinearLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:gravity="center_vertical"
-                                android:orientation="horizontal"
-                                android:padding="12dp">
-
-                                <LinearLayout
-                                    android:layout_width="0dp"
-                                    android:layout_height="wrap_content"
-                                    android:layout_weight="1"
-                                    android:orientation="vertical">
-
-                                    <TextView
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:text="Speed Boost"
-                                        android:textAppearance="?attr/textAppearanceTitleSmall"
-                                        android:textStyle="bold" />
-
-                                    <TextView
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:layout_marginTop="2dp"
-                                        android:text="2.0x Velocity Boost"
-                                        android:textAppearance="?attr/textAppearanceBodySmall"
-                                        android:textColor="?android:attr/textColorSecondary" />
-                                </LinearLayout>
-
-                                <com.google.android.material.materialswitch.MaterialSwitch
-                                    android:id="@+id/sw_speed_boost"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content" />
-                            </LinearLayout>
-                        </com.google.android.material.card.MaterialCardView>
-
-                    </LinearLayout>
-
-                    <!-- 2x2 Grid Row 3 -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:orientation="horizontal">
-
-                        <!-- Feature 4: Teleport -->
-                        <com.google.android.material.card.MaterialCardView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginEnd="6dp"
-                            android:layout_weight="1"
-                            app:cardCornerRadius="14dp"
-                            app:cardElevation="0dp"
-                            app:strokeWidth="1dp"
-                            app:strokeColor="?attr/colorOutlineVariant"
-                            style="@style/Widget.Material3.CardView.Filled">
-
-                            <LinearLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:gravity="center_vertical"
-                                android:orientation="horizontal"
-                                android:padding="12dp">
-
-                                <LinearLayout
-                                    android:layout_width="0dp"
-                                    android:layout_height="wrap_content"
-                                    android:layout_weight="1"
-                                    android:orientation="vertical">
-
-                                    <TextView
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:text="Teleport"
-                                        android:textAppearance="?attr/textAppearanceTitleSmall"
-                                        android:textStyle="bold" />
-
-                                    <TextView
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:layout_marginTop="2dp"
-                                        android:text="Coordinate Override"
-                                        android:textAppearance="?attr/textAppearanceBodySmall"
-                                        android:textColor="?android:attr/textColorSecondary" />
-                                </LinearLayout>
-
-                                <com.google.android.material.materialswitch.MaterialSwitch
-                                    android:id="@+id/sw_teleport"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content" />
-                            </LinearLayout>
-                        </com.google.android.material.card.MaterialCardView>
-
-                        <!-- Feature 5: Anti-Aim -->
-                        <com.google.android.material.card.MaterialCardView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="6dp"
-                            android:layout_weight="1"
-                            app:cardCornerRadius="14dp"
-                            app:cardElevation="0dp"
-                            app:strokeWidth="1dp"
-                            app:strokeColor="?attr/colorOutlineVariant"
-                            style="@style/Widget.Material3.CardView.Filled">
-
-                            <LinearLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:gravity="center_vertical"
-                                android:orientation="horizontal"
-                                android:padding="12dp">
-
-                                <LinearLayout
-                                    android:layout_width="0dp"
-                                    android:layout_height="wrap_content"
-                                    android:layout_weight="1"
-                                    android:orientation="vertical">
-
-                                    <TextView
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:text="Anti-Aim"
-                                        android:textAppearance="?attr/textAppearanceTitleSmall"
-                                        android:textStyle="bold" />
-
-                                    <TextView
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:layout_marginTop="2dp"
-                                        android:text="Desync &amp; Angle Shake"
-                                        android:textAppearance="?attr/textAppearanceBodySmall"
-                                        android:textColor="?android:attr/textColorSecondary" />
-                                </LinearLayout>
-
-                                <com.google.android.material.materialswitch.MaterialSwitch
-                                    android:id="@+id/sw_anti_aim"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content" />
-                            </LinearLayout>
-                        </com.google.android.material.card.MaterialCardView>
-
-                    </LinearLayout>
-
-                    <!-- 2x2 Grid Row 4 -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:orientation="horizontal">
-
-                        <!-- Feature 6: Radar ESP -->
-                        <com.google.android.material.card.MaterialCardView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginEnd="6dp"
-                            android:layout_weight="1"
-                            app:cardCornerRadius="14dp"
-                            app:cardElevation="0dp"
-                            app:strokeWidth="1dp"
-                            app:strokeColor="?attr/colorOutlineVariant"
-                            style="@style/Widget.Material3.CardView.Filled">
-
-                            <LinearLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:gravity="center_vertical"
-                                android:orientation="horizontal"
-                                android:padding="12dp">
-
-                                <LinearLayout
-                                    android:layout_width="0dp"
-                                    android:layout_height="wrap_content"
-                                    android:layout_weight="1"
-                                    android:orientation="vertical">
-
-                                    <TextView
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:text="Radar ESP"
-                                        android:textAppearance="?attr/textAppearanceTitleSmall"
-                                        android:textStyle="bold" />
-
-                                    <TextView
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:layout_marginTop="2dp"
-                                        android:text="Minimap Coordinates"
-                                        android:textAppearance="?attr/textAppearanceBodySmall"
-                                        android:textColor="?android:attr/textColorSecondary" />
-                                </LinearLayout>
-
-                                <com.google.android.material.materialswitch.MaterialSwitch
-                                    android:id="@+id/sw_radar"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content" />
-                            </LinearLayout>
-                        </com.google.android.material.card.MaterialCardView>
-
-                        <!-- Feature 7: Magic Bullet -->
-                        <com.google.android.material.card.MaterialCardView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="6dp"
-                            android:layout_weight="1"
-                            app:cardCornerRadius="14dp"
-                            app:cardElevation="0dp"
-                            app:strokeWidth="1dp"
-                            app:strokeColor="?attr/colorOutlineVariant"
-                            style="@style/Widget.Material3.CardView.Filled">
+                            android:layout_marginBottom="8dp"
+                            app:cardBackgroundColor="@color/bg_card"
+                            app:cardCornerRadius="12dp"
+                            app:strokeColor="@color/card_border"
+                            app:strokeWidth="1dp">
 
                             <LinearLayout
                                 android:layout_width="match_parent"
@@ -530,16 +654,16 @@
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
                                         android:text="Magic Bullet"
-                                        android:textAppearance="?attr/textAppearanceTitleSmall"
+                                        android:textColor="@color/text_primary"
+                                        android:textSize="13sp"
                                         android:textStyle="bold" />
 
                                     <TextView
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
-                                        android:layout_marginTop="2dp"
-                                        android:text="Direct Raycast Hitbox"
-                                        android:textAppearance="?attr/textAppearanceBodySmall"
-                                        android:textColor="?android:attr/textColorSecondary" />
+                                        android:text="Raycast Hitbox Vector Overwrite"
+                                        android:textColor="@color/text_secondary"
+                                        android:textSize="11sp" />
                                 </LinearLayout>
 
                                 <com.google.android.material.materialswitch.MaterialSwitch
@@ -550,68 +674,623 @@
                         </com.google.android.material.card.MaterialCardView>
 
                     </LinearLayout>
+                </ScrollView>
 
-                    <!-- Bottom Live Status & Control Card -->
-                    <com.google.android.material.card.MaterialCardView
+                <!-- TAB 3: VISUALS (ESP OVERLAY ENGINE) -->
+                <ScrollView
+                    android:id="@+id/tab_container_visuals"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:fillViewport="true"
+                    android:visibility="gone">
+
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        app:cardCornerRadius="14dp"
-                        app:cardElevation="0dp"
-                        app:strokeWidth="1dp"
-                        app:strokeColor="?attr/colorOutlineVariant"
-                        style="@style/Widget.Material3.CardView.Filled">
+                        android:orientation="vertical"
+                        android:padding="12dp">
 
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="8dp"
+                            android:text="VISUAL ESP CANVAS CONTROLS"
+                            android:textColor="@color/neon_emerald"
+                            android:textSize="11sp"
+                            android:textStyle="bold" />
+
+                        <!-- Master Canvas Toggle Card -->
+                        <com.google.android.material.card.MaterialCardView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="10dp"
+                            app:cardBackgroundColor="@color/bg_surface_variant"
+                            app:cardCornerRadius="12dp"
+                            app:strokeColor="@color/neon_emerald"
+                            app:strokeWidth="1.2dp">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal"
+                                android:padding="12dp">
+
+                                <LinearLayout
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:orientation="vertical">
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="Master ESP Overlay"
+                                        android:textColor="@color/neon_emerald"
+                                        android:textSize="13sp"
+                                        android:textStyle="bold" />
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="60 FPS Fullscreen Transparent Canvas"
+                                        android:textColor="@color/text_secondary"
+                                        android:textSize="10sp" />
+                                </LinearLayout>
+
+                                <com.google.android.material.materialswitch.MaterialSwitch
+                                    android:id="@+id/sw_master_esp"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content" />
+                            </LinearLayout>
+                        </com.google.android.material.card.MaterialCardView>
+
+                        <!-- 2x2 Grid of ESP Customizers -->
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:gravity="center_vertical"
-                            android:orientation="horizontal"
-                            android:padding="12dp">
+                            android:orientation="horizontal">
 
-                            <ImageView
-                                android:layout_width="26dp"
-                                android:layout_height="26dp"
-                                android:src="@drawable/ic_shield_check" />
-
-                            <LinearLayout
+                            <!-- Bounding Box Toggle -->
+                            <com.google.android.material.card.MaterialCardView
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
-                                android:layout_marginStart="10dp"
+                                android:layout_marginEnd="4dp"
                                 android:layout_weight="1"
-                                android:orientation="vertical">
+                                app:cardBackgroundColor="@color/bg_card"
+                                app:cardCornerRadius="12dp"
+                                app:strokeColor="@color/card_border"
+                                app:strokeWidth="1dp">
 
-                                <TextView
-                                    android:id="@+id/txt_status_title"
-                                    android:layout_width="wrap_content"
+                                <LinearLayout
+                                    android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
-                                    android:text="Memory Engine: Hooked"
-                                    android:textAppearance="?attr/textAppearanceTitleSmall"
-                                    android:textStyle="bold" />
+                                    android:gravity="center_vertical"
+                                    android:orientation="horizontal"
+                                    android:padding="10dp">
 
-                                <TextView
-                                    android:id="@+id/txt_status_sub"
-                                    android:layout_width="wrap_content"
+                                    <TextView
+                                        android:layout_width="0dp"
+                                        android:layout_height="wrap_content"
+                                        android:layout_weight="1"
+                                        android:text="2D Box"
+                                        android:textColor="@color/text_primary"
+                                        android:textSize="12sp"
+                                        android:textStyle="bold" />
+
+                                    <com.google.android.material.materialswitch.MaterialSwitch
+                                        android:id="@+id/sw_esp_box"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:checked="true" />
+                                </LinearLayout>
+                            </com.google.android.material.card.MaterialCardView>
+
+                            <!-- Traveling Ring Toggle -->
+                            <com.google.android.material.card.MaterialCardView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="4dp"
+                                android:layout_weight="1"
+                                app:cardBackgroundColor="@color/bg_card"
+                                app:cardCornerRadius="12dp"
+                                app:strokeColor="@color/card_border"
+                                app:strokeWidth="1dp">
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
-                                    android:text="Target: com.target.game • PID: Detecting"
-                                    android:textAppearance="?attr/textAppearanceBodySmall"
-                                    android:textColor="?android:attr/textColorSecondary" />
-                            </LinearLayout>
+                                    android:gravity="center_vertical"
+                                    android:orientation="horizontal"
+                                    android:padding="10dp">
 
-                            <!-- Re-Scan PID Button -->
-                            <com.google.android.material.button.MaterialButton
-                                android:id="@+id/btn_rescan_pid"
-                                android:layout_width="wrap_content"
-                                android:layout_height="38dp"
-                                android:text="Re-Scan"
-                                android:textSize="11sp"
-                                style="@style/Widget.Material3.Button.Tonal" />
+                                    <TextView
+                                        android:layout_width="0dp"
+                                        android:layout_height="wrap_content"
+                                        android:layout_weight="1"
+                                        android:text="Ring Element"
+                                        android:textColor="@color/text_primary"
+                                        android:textSize="12sp"
+                                        android:textStyle="bold" />
+
+                                    <com.google.android.material.materialswitch.MaterialSwitch
+                                        android:id="@+id/sw_esp_ring"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:checked="true" />
+                                </LinearLayout>
+                            </com.google.android.material.card.MaterialCardView>
 
                         </LinearLayout>
-                    </com.google.android.material.card.MaterialCardView>
 
-                </LinearLayout>
-            </ScrollView>
+                        <!-- Row 2: Skeleton & Health Bar -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:orientation="horizontal">
+
+                            <!-- Skeleton Toggle -->
+                            <com.google.android.material.card.MaterialCardView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginEnd="4dp"
+                                android:layout_weight="1"
+                                app:cardBackgroundColor="@color/bg_card"
+                                app:cardCornerRadius="12dp"
+                                app:strokeColor="@color/card_border"
+                                app:strokeWidth="1dp">
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:gravity="center_vertical"
+                                    android:orientation="horizontal"
+                                    android:padding="10dp">
+
+                                    <TextView
+                                        android:layout_width="0dp"
+                                        android:layout_height="wrap_content"
+                                        android:layout_weight="1"
+                                        android:text="Skeleton"
+                                        android:textColor="@color/text_primary"
+                                        android:textSize="12sp"
+                                        android:textStyle="bold" />
+
+                                    <com.google.android.material.materialswitch.MaterialSwitch
+                                        android:id="@+id/sw_esp_skel"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:checked="true" />
+                                </LinearLayout>
+                            </com.google.android.material.card.MaterialCardView>
+
+                            <!-- HP Bar Toggle -->
+                            <com.google.android.material.card.MaterialCardView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="4dp"
+                                android:layout_weight="1"
+                                app:cardBackgroundColor="@color/bg_card"
+                                app:cardCornerRadius="12dp"
+                                app:strokeColor="@color/card_border"
+                                app:strokeWidth="1dp">
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:gravity="center_vertical"
+                                    android:orientation="horizontal"
+                                    android:padding="10dp">
+
+                                    <TextView
+                                        android:layout_width="0dp"
+                                        android:layout_height="wrap_content"
+                                        android:layout_weight="1"
+                                        android:text="HP Bar"
+                                        android:textColor="@color/text_primary"
+                                        android:textSize="12sp"
+                                        android:textStyle="bold" />
+
+                                    <com.google.android.material.materialswitch.MaterialSwitch
+                                        android:id="@+id/sw_esp_hp"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:checked="true" />
+                                </LinearLayout>
+                            </com.google.android.material.card.MaterialCardView>
+
+                        </LinearLayout>
+
+                        <!-- Row 3: Snapline Tracer & Distance Meter -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:orientation="horizontal">
+
+                            <!-- Snapline Tracer Toggle -->
+                            <com.google.android.material.card.MaterialCardView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginEnd="4dp"
+                                android:layout_weight="1"
+                                app:cardBackgroundColor="@color/bg_card"
+                                app:cardCornerRadius="12dp"
+                                app:strokeColor="@color/card_border"
+                                app:strokeWidth="1dp">
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:gravity="center_vertical"
+                                    android:orientation="horizontal"
+                                    android:padding="10dp">
+
+                                    <TextView
+                                        android:layout_width="0dp"
+                                        android:layout_height="wrap_content"
+                                        android:layout_weight="1"
+                                        android:text="Snapline"
+                                        android:textColor="@color/text_primary"
+                                        android:textSize="12sp"
+                                        android:textStyle="bold" />
+
+                                    <com.google.android.material.materialswitch.MaterialSwitch
+                                        android:id="@+id/sw_esp_tracer"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:checked="true" />
+                                </LinearLayout>
+                            </com.google.android.material.card.MaterialCardView>
+
+                            <!-- Distance Meter Toggle -->
+                            <com.google.android.material.card.MaterialCardView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="4dp"
+                                android:layout_weight="1"
+                                app:cardBackgroundColor="@color/bg_card"
+                                app:cardCornerRadius="12dp"
+                                app:strokeColor="@color/card_border"
+                                app:strokeWidth="1dp">
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:gravity="center_vertical"
+                                    android:orientation="horizontal"
+                                    android:padding="10dp">
+
+                                    <TextView
+                                        android:layout_width="0dp"
+                                        android:layout_height="wrap_content"
+                                        android:layout_weight="1"
+                                        android:text="Distance"
+                                        android:textColor="@color/text_primary"
+                                        android:textSize="12sp"
+                                        android:textStyle="bold" />
+
+                                    <com.google.android.material.materialswitch.MaterialSwitch
+                                        android:id="@+id/sw_esp_dist"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:checked="true" />
+                                </LinearLayout>
+                            </com.google.android.material.card.MaterialCardView>
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+                </ScrollView>
+
+                <!-- TAB 4: MOVEMENT & SCRIPTS -->
+                <ScrollView
+                    android:id="@+id/tab_container_scripts"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:fillViewport="true"
+                    android:visibility="gone">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="12dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="8dp"
+                            android:text="MOVEMENT &amp; ANGLE MODIFIERS"
+                            android:textColor="@color/neon_violet"
+                            android:textSize="11sp"
+                            android:textStyle="bold" />
+
+                        <!-- Teleport Card -->
+                        <com.google.android.material.card.MaterialCardView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="8dp"
+                            app:cardBackgroundColor="@color/bg_card"
+                            app:cardCornerRadius="12dp"
+                            app:strokeColor="@color/card_border"
+                            app:strokeWidth="1dp">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal"
+                                android:padding="12dp">
+
+                                <LinearLayout
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:orientation="vertical">
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="Teleport"
+                                        android:textColor="@color/text_primary"
+                                        android:textSize="13sp"
+                                        android:textStyle="bold" />
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="Player Coordinate Delta Injection"
+                                        android:textColor="@color/text_secondary"
+                                        android:textSize="11sp" />
+                                </LinearLayout>
+
+                                <com.google.android.material.materialswitch.MaterialSwitch
+                                    android:id="@+id/sw_teleport"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content" />
+                            </LinearLayout>
+                        </com.google.android.material.card.MaterialCardView>
+
+                        <!-- Anti-Aim Card -->
+                        <com.google.android.material.card.MaterialCardView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="8dp"
+                            app:cardBackgroundColor="@color/bg_card"
+                            app:cardCornerRadius="12dp"
+                            app:strokeColor="@color/card_border"
+                            app:strokeWidth="1dp">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal"
+                                android:padding="12dp">
+
+                                <LinearLayout
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:orientation="vertical">
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="Anti-Aim"
+                                        android:textColor="@color/text_primary"
+                                        android:textSize="13sp"
+                                        android:textStyle="bold" />
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="Pitch / Yaw Angle Desync"
+                                        android:textColor="@color/text_secondary"
+                                        android:textSize="11sp" />
+                                </LinearLayout>
+
+                                <com.google.android.material.materialswitch.MaterialSwitch
+                                    android:id="@+id/sw_anti_aim"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content" />
+                            </LinearLayout>
+                        </com.google.android.material.card.MaterialCardView>
+
+                    </LinearLayout>
+                </ScrollView>
+
+                <!-- TAB 5: PROCESS DIAGNOSTICS -->
+                <ScrollView
+                    android:id="@+id/tab_container_process"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:fillViewport="true"
+                    android:visibility="gone">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="12dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="8dp"
+                            android:text="PROCESS MEMORY &amp; JNI DIAGNOSTICS"
+                            android:textColor="@color/neon_amber"
+                            android:textSize="11sp"
+                            android:textStyle="bold" />
+
+                        <com.google.android.material.card.MaterialCardView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:cardBackgroundColor="@color/bg_card"
+                            app:cardCornerRadius="12dp"
+                            app:strokeColor="@color/card_border"
+                            app:strokeWidth="1dp">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical"
+                                android:padding="12dp">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Target Dynamic Library:"
+                                    android:textColor="@color/text_secondary"
+                                    android:textSize="11sp" />
+
+                                <TextView
+                                    android:id="@+id/txt_diag_lib"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="2dp"
+                                    android:fontFamily="monospace"
+                                    android:text="libil2cpp.so (Mapped)"
+                                    android:textColor="@color/neon_cyan"
+                                    android:textSize="12sp" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="10dp"
+                                    android:text="Kernel Memory Interface:"
+                                    android:textColor="@color/text_secondary"
+                                    android:textSize="11sp" />
+
+                                <TextView
+                                    android:id="@+id/txt_diag_mempath"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="2dp"
+                                    android:fontFamily="monospace"
+                                    android:text="/proc/[pid]/mem (pread/pwrite)"
+                                    android:textColor="@color/neon_emerald"
+                                    android:textSize="12sp" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="10dp"
+                                    android:text="Background Thread Loop:"
+                                    android:textColor="@color/text_secondary"
+                                    android:textSize="11sp" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="2dp"
+                                    android:fontFamily="monospace"
+                                    android:text="Active (300ms persistence)"
+                                    android:textColor="@color/text_primary"
+                                    android:textSize="12sp" />
+
+                            </LinearLayout>
+                        </com.google.android.material.card.MaterialCardView>
+
+                    </LinearLayout>
+                </ScrollView>
+
+                <!-- TAB 6: SETTINGS & OPACITY -->
+                <ScrollView
+                    android:id="@+id/tab_container_settings"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:fillViewport="true"
+                    android:visibility="gone">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="12dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="8dp"
+                            android:text="WINDOW OPACITY &amp; PREFERENCES"
+                            android:textColor="@color/neon_cyan"
+                            android:textSize="11sp"
+                            android:textStyle="bold" />
+
+                        <!-- Window Transparency Card -->
+                        <com.google.android.material.card.MaterialCardView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:cardBackgroundColor="@color/bg_card"
+                            app:cardCornerRadius="12dp"
+                            app:strokeColor="@color/card_border"
+                            app:strokeWidth="1dp">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical"
+                                android:padding="12dp">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Window Transparency (Alpha):"
+                                    android:textColor="@color/text_secondary"
+                                    android:textSize="11sp" />
+
+                                <com.google.android.material.chip.ChipGroup
+                                    android:id="@+id/chip_group_opacity"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="8dp"
+                                    app:singleSelection="true">
+
+                                    <com.google.android.material.chip.Chip
+                                        android:id="@+id/chip_opacity_50"
+                                        style="@style/Widget.Material3.Chip.Filter"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="50% Ghost"
+                                        android:textColor="@color/text_primary" />
+
+                                    <com.google.android.material.chip.Chip
+                                        android:id="@+id/chip_opacity_80"
+                                        style="@style/Widget.Material3.Chip.Filter"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="80% Frosted"
+                                        android:textColor="@color/text_primary" />
+
+                                    <com.google.android.material.chip.Chip
+                                        android:id="@+id/chip_opacity_100"
+                                        style="@style/Widget.Material3.Chip.Filter"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:checked="true"
+                                        android:text="100% Solid"
+                                        android:textColor="@color/text_primary" />
+
+                                </com.google.android.material.chip.ChipGroup>
+
+                            </LinearLayout>
+                        </com.google.android.material.card.MaterialCardView>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="16dp"
+                            android:text="ProInjector Core Engine • Built with JNI &amp; Google Material 3"
+                            android:textColor="@color/text_muted"
+                            android:textSize="10sp" />
+
+                    </LinearLayout>
+                </ScrollView>
+
+            </FrameLayout>
 
         </LinearLayout>
 

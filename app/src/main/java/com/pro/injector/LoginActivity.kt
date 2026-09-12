@@ -128,7 +128,8 @@ class LoginActivity : AppCompatActivity() {
 
     private fun getTargetPid(pkg: String): Int {
         return try {
-            val proc = Runtime.getRuntime().exec(arrayOf("su", "-c", "pidof $pkg"))
+            val cmd = "pidof $pkg || pgrep -f $pkg || ps -A | grep '$pkg' | awk '{print \$2}'"
+            val proc = Runtime.getRuntime().exec(arrayOf("su", "-c", cmd))
             proc.waitFor()
             val text = proc.inputStream.bufferedReader().readText().trim()
             if (text.isNotEmpty()) {

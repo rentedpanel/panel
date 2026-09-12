@@ -1,6 +1,16 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Framework and Library standard default Material3 theme -->
-    <style name="Theme.ProInjector" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Everything follows framework and library defaults -->
+    <style name="Theme.ProInjector" parent="Theme.Material3.Dark.NoActionBar">
+        <item name="colorPrimary">@color/neon_cyan</item>
+        <item name="colorOnPrimary">@color/bg_void</item>
+        <item name="colorSecondary">@color/neon_emerald</item>
+        <item name="colorOnSecondary">@color/bg_void</item>
+        <item name="colorTertiary">@color/neon_violet</item>
+        <item name="android:colorBackground">@color/bg_void</item>
+        <item name="colorSurface">@color/bg_surface</item>
+        <item name="colorSurfaceVariant">@color/bg_surface_variant</item>
+        <item name="colorOnSurface">@color/text_primary</item>
+        <item name="colorOnSurfaceVariant">@color/text_secondary</item>
+        <item name="colorOutline">@color/card_border</item>
+        <item name="colorOutlineVariant">@color/card_border</item>
     </style>
 </resources>
