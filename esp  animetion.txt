@@ -1,0 +1,683 @@
+ESP Overlay -- Android (No
+PC)
+Ring animation: screen left edge → enemy head | Bounding box
+| Skeleton | Distance | HP bar
+
+P
+
+=
+
+0x04F99B18;
+static constexpr uintptr_t LOCAL_PLAYER_OFF =
+0x04F99B20;
+static constexpr uintptr_t HEAD_BONE_OFF
+
+= 0x1A4;
+
+static constexpr uintptr_t WORLD_POS_OFF
+
+= 0x138;
+
+static constexpr uintptr_t VIEWMATRIX_OFF
+
+=
+
+0x04F4E5C0;
+static pid_t g_pid = -1;
+// PID finder
+static pid_t find_pid(const char* proc_name) {
+DIR* dir = opendir("/proc");
+if (!dir) return -1;
+struct dirent* entry;
+while ((entry = readdir(dir))) {
+if (entry->d_type != DT_DIR) continue;
+char path[256], line[256];
+snprintf(path, sizeof(path), "/proc/%s/comm",
+entry->d_name);
+FILE* f = fopen(path, "r");
+if (!f) continue;
+if (fgets(line, sizeof(line), f)) {
+line[strcspn(line, "\n")] = 0;
+if (strcmp(line, proc_name) == 0) {
+
+fclose(f);
+closedir(dir);
+return (pid_t)atoi(entry->d_name);
+}
+}
+fclose(f);
+}
+closedir(dir);
+return -1;
+}
+// process_vm_readv wrapper
+static bool read_mem(pid_t pid, uintptr_t addr, void*
+buf, size_t len) {
+struct iovec local
+
+= { buf,
+
+len };
+
+struct iovec remote = { (void*)addr, len };
+return process_vm_readv(pid, &local, 1, &remote,
+1, 0) == (ssize_t)len;
+}
+template<typename T>
+static T rpm(uintptr_t addr) {
+T val{};
+read_mem(g_pid, addr, &val, sizeof(T));
+return val;
+}
+// Base address from /proc/pid/maps
+static uintptr_t get_base(pid_t pid, const char* lib)
+{
+char path[64];
+snprintf(path, sizeof(path), "/proc/%d/maps",
+pid);
+FILE* f = fopen(path, "r");
+if (!f) return 0;
+char line[512];
+uintptr_t base = 0;
+while (fgets(line, sizeof(line), f)) {
+if (strstr(line, lib) && strstr(line, "r-xp"))
+{
+sscanf(line, "%lx", &base);
+break;
+
+}
+}
+fclose(f);
+return base;
+}
+struct Vec3 { float x, y, z; };
+struct Mat4 { float m[16]; };
+// World to screen projection
+static bool world_to_screen(const Vec3& pos, const
+Mat4& vp,
+float sw, float sh,
+float& sx, float& sy) {
+float clipX = vp.m[0]*pos.x + vp.m[4]*pos.y +
+vp.m[8]*pos.z
+
++ vp.m[12];
+
+float clipY = vp.m[1]*pos.x + vp.m[5]*pos.y +
+vp.m[9]*pos.z
+
++ vp.m[13];
+
+float clipW = vp.m[3]*pos.x + vp.m[7]*pos.y +
+vp.m[11]*pos.z + vp.m[15];
+if (clipW < 0.001f) return false;
+float ndcX = clipX / clipW;
+float ndcY = clipY / clipW;
+sx = (ndcX + 1.0f) * 0.5f * sw;
+sy = (1.0f - ndcY) * 0.5f * sh;
+return true;
+}
+extern "C" {
+JNIEXPORT jboolean JNICALL
+Java_com_ffahs_MemoryReader_init(JNIEnv*, jobject) {
+g_pid = find_pid("jast fun ha ha ha ");
+if (g_pid == -1) g_pid =
+find_pid("fun projuct ");
+if (g_pid == -1) { LOGI("FF not running"); return
+JNI_FALSE; }
+LOGI("FF pid=%d", g_pid);
+return JNI_TRUE;
+}
+// Returns float[2] = {screenX, screenY} of nearest
+
+enemy head
+JNIEXPORT jfloatArray JNICALL
+Java_com_ffahs_MemoryReader_getNearestHeadScreen(
+JNIEnv* env, jobject, jfloat sw, jfloat sh) {
+jfloat result[2] = {-1.f, -1.f};
+jfloatArray arr = env->NewFloatArray(2);
+uintptr_t base = get_base(g_pid, "libil2cpp.so");
+if (!base) { env>SetFloatArrayRegion(arr,0,2,result); return arr; }
+Mat4 vp = rpm<Mat4>(base + VIEWMATRIX_OFF);
+uintptr_t localPlayer = rpm<uintptr_t>(base +
+LOCAL_PLAYER_OFF);
+uintptr_t entityList
+
+= rpm<uintptr_t>(base +
+
+ENTITY_LIST_OFF);
+float bestDist = 1e9f;
+float cx = sw * 0.5f, cy = sh * 0.5f;
+for (int i = 0; i < 32; i++) {
+uintptr_t entity = rpm<uintptr_t>(entityList +
+i * 0x8);
+if (!entity || entity == localPlayer)
+continue;
+uintptr_t boneArr = rpm<uintptr_t>(entity +
+HEAD_BONE_OFF);
+Vec3 headWorld = rpm<Vec3>(boneArr + 8 *
+0x30);
+float sx, sy;
+if (!world_to_screen(headWorld, vp, sw, sh,
+sx, sy)) continue;
+if (sx < 0 || sx > sw || sy < 0 || sy > sh)
+continue;
+float dx = sx - cx, dy = sy - cy;
+float dist = dx*dx + dy*dy;
+if (dist < bestDist) {
+bestDist = dist;
+result[0] = sx;
+result[1] = sy;
+}
+}
+env->SetFloatArrayRegion(arr, 0, 2, result);
+return arr;
+}
+
+// Returns all enemies: [hx,hy,fx,fy,dist,
+hx,hy,fx,fy,dist, ...]
+JNIEXPORT jfloatArray JNICALL
+Java_com_ffahs_MemoryReader_getAllEnemiesScreen(
+JNIEnv* env, jobject, jfloat sw, jfloat sh) {
+float buf[160];
+int count = 0;
+memset(buf, -1, sizeof(buf));
+uintptr_t base = get_base(g_pid, "libil2cpp.so");
+if (!base) {
+jfloatArray arr = env->NewFloatArray(5);
+jfloat tmp[5] = {-1,-1,-1,-1,-1};
+env->SetFloatArrayRegion(arr,0,5,tmp);
+return arr;
+}
+Mat4
+
+vp
+
+= rpm<Mat4>(base +
+
+VIEWMATRIX_OFF);
+uintptr_t local
+
+= rpm<uintptr_t>(base +
+
+LOCAL_PLAYER_OFF);
+uintptr_t entList = rpm<uintptr_t>(base +
+ENTITY_LIST_OFF);
+for (int i = 0; i < 32 && count < 32; i++) {
+uintptr_t ent = rpm<uintptr_t>(entList + i *
+0x8);
+if (!ent || ent == local) continue;
+uintptr_t bones
+
+= rpm<uintptr_t>(ent +
+
+HEAD_BONE_OFF);
+Vec3 headWorld
+
+= rpm<Vec3>(bones + 8 *
+
+Vec3 footWorld
+
+= rpm<Vec3>(bones + 0 *
+
+0x30);
+0x30);
+uintptr_t localBones = rpm<uintptr_t>(local +
+HEAD_BONE_OFF);
+Vec3 localPos
+
+= rpm<Vec3>(localBones +
+
+0 * 0x30);
+float dx = headWorld.x - localPos.x;
+float dy = headWorld.y - localPos.y;
+float dz = headWorld.z - localPos.z;
+float dist = sqrtf(dx*dx + dy*dy + dz*dz);
+float hsx, hsy, fsx, fsy;
+if (!world_to_screen(headWorld, vp, sw, sh,
+hsx, hsy)) continue;
+
+if (!world_to_screen(footWorld, vp, sw, sh,
+fsx, fsy)) continue;
+int base_idx = count * 5;
+buf[base_idx + 0] = hsx;
+buf[base_idx + 1] = hsy;
+buf[base_idx + 2] = fsx;
+buf[base_idx + 3] = fsy;
+buf[base_idx + 4] = dist;
+count++;
+}
+int total = count * 5;
+jfloatArray arr = env->NewFloatArray(total > 0 ?
+total : 5);
+if (total > 0) {
+env->SetFloatArrayRegion(arr, 0, total, buf);
+} else {
+jfloat tmp[5] = {-1,-1,-1,-1,-1};
+env->SetFloatArrayRegion(arr, 0, 5, tmp);
+}
+return arr;
+}
+} // extern "C"
+
+2. MemoryReader.kt
+// File: app/src/main/java/com/ffahs/MemoryReader.kt
+package com.ffahs
+class MemoryReader {
+external fun init(): Boolean
+external fun getNearestHeadScreen(sw: Float, sh:
+Float): FloatArray
+external fun getAllEnemiesScreen(sw: Float, sh:
+Float): FloatArray
+companion object {
+init { System.loadLibrary("ffahs") }
+
+}
+}
+
+3. EspOverlayService.kt
+// File:
+app/src/main/java/com/ffahs/EspOverlayService.kt
+package com.ffahs
+import android.app.Service
+import android.content.Intent
+import android.graphics.PixelFormat
+import android.os.Handler
+import android.os.IBinder
+import android.os.Looper
+import android.view.WindowManager
+class EspOverlayService : Service() {
+private lateinit var wm: WindowManager
+private lateinit var espView: EspCanvasView
+private val reader = MemoryReader()
+@Volatile var enemies:
+List<EspCanvasView.EnemyData> = emptyList()
+override fun onCreate() {
+super.onCreate()
+wm = getSystemService(WINDOW_SERVICE) as
+WindowManager
+val dm = resources.displayMetrics
+val sw = dm.widthPixels.toFloat()
+val sh = dm.heightPixels.toFloat()
+espView = EspCanvasView(this, sw, sh) {
+enemies }
+val params = WindowManager.LayoutParams(
+
+dm.widthPixels, dm.heightPixels,
+WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
+WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
+PixelFormat.TRANSLUCENT
+)
+params.x = 0
+params.y = 0
+wm.addView(espView, params)
+if (reader.init()) startMemoryPoll(sw, sh)
+}
+private fun startMemoryPoll(sw: Float, sh: Float)
+{
+Thread {
+while (true) {
+val raw =
+reader.getAllEnemiesScreen(sw, sh)
+val list =
+mutableListOf<EspCanvasView.EnemyData>()
+var i = 0
+while (i + 4 < raw.size) {
+if (raw[i] >= 0f) {
+list.add(EspCanvasView.EnemyData(
+raw[i], raw[i+1],
+raw[i+2], raw[i+3], raw[i+4]
+))
+}
+i += 5
+}
+enemies = list
+Thread.sleep(16L)
+}
+}.also { it.isDaemon = true }.start()
+}
+
+override fun onBind(intent: Intent?): IBinder? =
+null
+override fun onDestroy() {
+wm.removeView(espView)
+super.onDestroy()
+}
+}
+
+4. EspCanvasView.kt
+// File: app/src/main/java/com/ffahs/EspCanvasView.kt
+package com.ffahs
+import android.content.Context
+import android.graphics.*
+import android.view.View
+import kotlin.math.*
+class EspCanvasView(
+ctx: Context,
+private val sw: Float,
+private val sh: Float,
+private val getEnemies: () -> List<EnemyData>
+) : View(ctx) {
+data class EnemyData(
+val headX: Float,
+val headY: Float,
+val footX: Float,
+val footY: Float,
+val dist: Float
+)
+// -- Paints -private val boxPaint =
+Paint(Paint.ANTI_ALIAS_FLAG).apply {
+
+style = Paint.Style.STROKE
+strokeWidth = 2.5f
+}
+private val skelPaint =
+Paint(Paint.ANTI_ALIAS_FLAG).apply {
+style = Paint.Style.STROKE
+strokeWidth = 1.5f
+color = Color.argb(180, 255, 255, 255)
+pathEffect = DashPathEffect(floatArrayOf(6f,
+4f), 0f)
+}
+private val textPaint =
+Paint(Paint.ANTI_ALIAS_FLAG).apply {
+color = Color.WHITE
+textSize = 22f
+typeface = Typeface.MONOSPACE
+setShadowLayer(4f, 0f, 0f, Color.BLACK)
+}
+private val ringPaint =
+Paint(Paint.ANTI_ALIAS_FLAG).apply {
+style = Paint.Style.STROKE
+strokeWidth = 4f
+color = Color.argb(220, 0, 255, 128)
+}
+private val ringGlowPaint =
+Paint(Paint.ANTI_ALIAS_FLAG).apply {
+style = Paint.Style.STROKE
+strokeWidth = 14f
+color = Color.argb(60, 0, 255, 128)
+maskFilter = BlurMaskFilter(12f,
+BlurMaskFilter.Blur.OUTER)
+}
+private val tracerPaint =
+Paint(Paint.ANTI_ALIAS_FLAG).apply {
+style = Paint.Style.STROKE
+strokeWidth = 1f
+color = Color.argb(80, 0, 200, 255)
+}
+private val hpBgPaint =
+Paint(Paint.ANTI_ALIAS_FLAG).apply {
+style = Paint.Style.FILL
+color = Color.argb(150, 30, 30, 30)
+
+}
+private val hpFillPaint =
+Paint(Paint.ANTI_ALIAS_FLAG).apply {
+style = Paint.Style.FILL
+color = Color.argb(220, 0, 220, 80)
+}
+// -- Ring animation state -private data class RingAnim(var t: Float = 0f, val
+speed: Float = 0.035f)
+private val ringAnims = mutableMapOf<Int,
+RingAnim>()
+private var pulse = 0f
+private var pulseDir = 1f
+// Origin: left edge, vertical center
+private val originX get() = 0f
+private val originY get() = sh * 0.5f
+init {
+setLayerType(LAYER_TYPE_SOFTWARE, null) //
+required for BlurMaskFilter
+postInvalidate()
+}
+override fun onDraw(canvas: Canvas) {
+super.onDraw(canvas)
+val enemies = getEnemies()
+pulse += pulseDir * 0.8f
+if (pulse > 6f || pulse < 0f) pulseDir = pulseDir
+val currentIds = enemies.indices.toSet()
+ringAnims.keys.retainAll(currentIds)
+for (i in currentIds) ringAnims.getOrPut(i) {
+RingAnim(t = 0f) }
+for ((i, enemy) in enemies.withIndex())
+drawEnemy(canvas, enemy, i)
+postInvalidate()
+}
+
+private fun drawEnemy(canvas: Canvas, e:
+EnemyData, idx: Int) {
+val anim = ringAnims[idx] ?: return
+val boxColor = when {
+e.dist < 20f -> Color.argb(200, 255,
+60)
+
+// red
+
+0)
+
+// orange mid
+
+0)
+
+// yellow far
+
+60,
+
+near
+e.dist < 50f -> Color.argb(200, 255, 165,
+else
+
+-> Color.argb(200, 255, 230,
+
+}
+val bodyH = e.footY - e.headY
+val boxW
+
+= bodyH * 0.4f
+
+// HP bar (above box, 5px tall)
+val hpBarW = boxW * 2f
+canvas.drawRect(
+e.headX - boxW, e.headY - 10f,
+e.headX + boxW, e.headY - 5f,
+hpBgPaint
+)
+canvas.drawRect(
+e.headX - boxW, e.headY - 10f,
+e.headX - boxW + hpBarW * 0.6f, e.headY 5f, // 60% hp example
+hpFillPaint
+)
+// Bounding box
+boxPaint.color = boxColor
+canvas.drawRect(e.headX - boxW, e.headY,
+e.headX + boxW, e.footY, boxPaint)
+drawCorners(canvas, e.headX - boxW, e.headY,
+e.headX + boxW, e.footY, boxColor)
+// Skeleton
+canvas.drawLine(e.headX, e.headY, e.footX,
+e.footY, skelPaint)
+
+// Distance
+val distStr = "${e.dist.toInt()}m"
+textPaint.color = boxColor
+canvas.drawText(distStr, e.headX + boxW + 4f,
+e.headY + 16f, textPaint)
+// Tracer: origin → head
+canvas.drawLine(originX, originY, e.headX,
+e.headY, tracerPaint)
+// Animated ring
+val t
+
+= anim.t
+
+val rx = originX + (e.headX - originX) * t
+val ry = originY + (e.headY - originY) * t
+val baseRadius = lerp(28f, 10f, t) + pulse *
+(1f - t)
+// Glow
+ringGlowPaint.color = Color.argb(
+(60 * (1f - t * 0.5f)).toInt(), 0, 255,
+128
+)
+canvas.drawCircle(rx, ry, baseRadius + 6f,
+ringGlowPaint)
+// Ring body
+ringPaint.color = Color.argb(lerp(100f, 220f,
+t).toInt(), 0, 255, 128)
+canvas.drawCircle(rx, ry, baseRadius,
+ringPaint)
+// Impact dot at head when ring arrives
+if (t > 0.9f) {
+val alpha = ((t - 0.9f) / 0.1f *
+255).toInt()
+val dotPaint =
+Paint(Paint.ANTI_ALIAS_FLAG).apply {
+style = Paint.Style.FILL
+color = Color.argb(alpha, 255, 60, 60)
+}
+canvas.drawCircle(e.headX, e.headY, 5f +
+pulse * 0.5f, dotPaint)
+
+}
+anim.t += anim.speed
+if (anim.t > 1f) anim.t = 0f
+}
+private fun drawCorners(canvas: Canvas, l: Float,
+t: Float, r: Float, b: Float, color: Int) {
+val p = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+style = Paint.Style.STROKE
+strokeWidth = 3f
+this.color = color
+}
+val len = (r - l) * 0.25f
+canvas.drawLine(l, t, l + len, t, p);
+canvas.drawLine(l, t, l, t + len, p)
+canvas.drawLine(r - len, t, r, t, p);
+canvas.drawLine(r, t, r, t + len, p)
+canvas.drawLine(l, b - len, l, b, p);
+canvas.drawLine(l, b, l + len, b, p)
+canvas.drawLine(r - len, b, r, b, p);
+canvas.drawLine(r, b - len, r, b, p)
+}
+private fun lerp(a: Float, b: Float, t: Float) = a
++ (b - a) * t.coerceIn(0f, 1f)
+}
+
+5. AndroidManifest.xml (critical entries)
+<manifest
+xmlns:android="http://schemas.android.com/apk/res/andr
+oid"
+package="com.ffahs">
+<uses-permission
+android:name="android.permission.FOREGROUND_SERVICE"/>
+<uses-permission
+
+android:name="android.permission.SYSTEM_ALERT_WINDOW"/
+>
+<uses-permission
+android:name="android.permission.INTERNET"/>
+<application
+android:allowBackup="false"
+android:label="FFAHS"
+android:theme="@style/Theme.AppCompat">
+<activity android:name=".MainActivity"
+android:exported="true">
+<intent-filter>
+<action
+android:name="android.intent.action.MAIN"/>
+<category
+android:name="android.intent.category.LAUNCHER"/>
+</intent-filter>
+</activity>
+<service
+android:name=".EspOverlayService"
+android:exported="false"/>
+<service
+android:name=".AutoShootService"
+android:permission="android.permission.BIND_ACCESSIBIL
+ITY_SERVICE"
+android:exported="true">
+<intent-filter>
+<action
+android:name="android.accessibilityservice.Accessibili
+tyService"/>
+</intent-filter>
+<meta-data
+android:name="android.accessibilityservice"
+android:resource="@xml/accessibility_config"/>
+</service>
+
+</application>
+</manifest>
+
+6. res/xml/accessibility_config.xml
+<accessibility-service
+xmlns:android="http://schemas.android.com/apk/res/andr
+oid"
+android:accessibilityEventTypes="typeAllMask"
+android:accessibilityFeedbackType="feedbackGeneric"
+android:accessibilityFlags="flagDefault"
+android:canPerformGestures="true"
+android:description="@string/accessibility_description
+"
+android:notificationTimeout="100"
+android:packageNames="jast fun ha ha ha "/>
+
+7. CMakeLists.txt
+cmake_minimum_required(VERSION 3.22)
+project(ffahs)
+add_library(ffahs SHARED
+src/main/cpp/memreader.cpp
+)
+find_library(log-lib log)
+target_link_libraries(ffahs ${log-lib})
+
+target_compile_options(ffahs PRIVATE
+-O3
+-fvisibility=hidden
+-fstack-protector-strong
+)
+
+8. MainActivity.kt (service launcher)
+// File: app/src/main/java/com/ffahs/MainActivity.kt
+package com.ffahs
+import android.content.Intent
+import android.net.Uri
+import android.os.Bundle
+import android.provider.Settings
+import androidx.appcompat.app.AppCompatActivity
+class MainActivity : AppCompatActivity() {
+override fun onCreate(savedInstanceState: Bundle?)
+{
+super.onCreate(savedInstanceState)
+// Request overlay permission if not granted
+if (!Settings.canDrawOverlays(this)) {
+val intent = Intent(
+Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+Uri.parse("package:$packageName")
+)
+startActivityForResult(intent, 1001)
+} else {
+launchServices()
+}
+}
+override fun onActivityResult(requestCode: Int,
+
+resultCode: Int, data: Intent?) {
+super.onActivityResult(requestCode,
+resultCode, data)
+if (requestCode == 1001 &&
+Settings.canDrawOverlays(this)) {
+launchServices()
+}
+}
+private fun launchServices() {
+startService(Intent(this,
+EspOverlayService::class.java))
+// AutoShootService starts via accessibility
+settings
+}
+}
+

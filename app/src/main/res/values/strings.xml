@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">ProInjector</string>
+    <string name="login_title">⚡ PRO INJECTOR v2.0</string>
+    <string name="login_subtitle">Kernel-level Memory Injection &amp; Mod Engine</string>
+    <string name="username_hint">Username</string>
+    <string name="password_hint">Password</string>
+    <string name="target_package_hint">Target Package (e.g. com.target.game)</string>
+    <string name="btn_login">AUTHENTICATE &amp; ATTACH</string>
+    <string name="login_success">✓ Authentication successful</string>
+    <string name="login_failed">✗ Invalid credentials</string>
+</resources>

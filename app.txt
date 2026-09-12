@@ -1,0 +1,222 @@
+# ProInjector - Android Root Memory Injector & Mod-Menu Architecture
+
+A production-grade Android mod-menu injector:
+Login -> Draggable Floating Icon -> Pop-up Mod-Menu (Switches) -> JNI -> Native C++ Memory Engine (/proc/[pid]/mem).
+
+---
+
+## 📁 Project Structure
+
+```
+ProInjector/
+├── app/
+│   ├── build.gradle
+│   ├── proguard-rules.pro
+│   └── src/main/
+│       ├── AndroidManifest.xml
+│       ├── java/com/pro/injector/
+│       │   ├── LoginActivity.kt      (Authentication & Permission Dispatcher)
+│       │   ├── FloatingService.kt    (Draggable Floating Overlay & Mod Menu)
+│       │   └── NativeBridge.kt       (JNI Communication Bridge)
+│       ├── cpp/
+│       │   ├── CMakeLists.txt        (NDK Build Configuration)
+│       │   ├── injector.cpp          (Kernel Memory Read/Write Engine)
+│       │   └── offsets.h             (Target Library & Hex Offset Configuration)
+│       └── res/values/
+│           ├── strings.xml
+│           ├── colors.xml
+│           └── themes.xml
+├── build.gradle
+├── settings.gradle
+├── gradle.properties
+└── README.md
+```
+
+---
+
+## 1. `app/build.gradle`
+
+```gradle
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+}
+
+android {
+    namespace 'com.pro.injector'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.pro.injector"
+        minSdk 26
+        targetSdk 34
+        versionCode 1
+        versionName "2.0"
+
+        ndk {
+            abiFilters 'armeabi-v7a', 'arm64-v8a'
+        }
+
+        externalNativeBuild {
+            cmake {
+                arguments '-DANDROID_ARM_MODE=arm'
+            }
+        }
+    }
+
+    externalNativeBuild {
+        cmake {
+            path 'src/main/cpp/CMakeLists.txt'
+        }
+    }
+
+    buildFeatures {
+        viewBinding true
+    }
+}
+
+dependencies {
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'androidx.core:core-ktx:1.12.0'
+    implementation 'com.google.android.material:material:1.11.0'
+}
+```
+
+---
+
+## 2. `AndroidManifest.xml`
+
+```xml
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE"/>
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+
+    <application 
+        android:label="ProInjector" 
+        android:theme="@style/Theme.ProInjector">
+        <activity 
+            android:name=".LoginActivity" 
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+        <service 
+            android:name=".FloatingService"
+            android:foregroundServiceType="specialUse"/>
+    </application>
+</manifest>
+```
+
+---
+
+## 3. `LoginActivity.kt` — Authentication & Permissions
+
+```kotlin
+package com.pro.injector
+
+import android.app.Activity
+import android.content.Intent
+import android.net.Uri
+import android.os.*
+import android.provider.Settings
+import android.widget.*
+
+class LoginActivity : Activity() {
+    // Validates credentials, checks root (su -c id), verifies overlay permission,
+    // queries target PID via pidof, and spawns FloatingService.
+}
+```
+
+---
+
+## 4. `NativeBridge.kt` — JNI Interface
+
+```kotlin
+package com.pro.injector
+
+object NativeBridge {
+    init { System.loadLibrary("injector") }
+    external fun init(pid: Int): Boolean
+    external fun setFeature(id: Int, on: Boolean): Boolean
+    external fun isSupported(): Boolean
+    external fun stop()
+}
+```
+
+---
+
+## 5. `FloatingService.kt` — Floating Overlay & Mod Menu
+
+```kotlin
+package com.pro.injector
+
+import android.app.*
+import android.view.*
+import android.widget.*
+
+class FloatingService : Service() {
+    // Manages foreground notification channel.
+    // Creates draggable floating icon (⚡).
+    // Renders interactive mod-menu with toggle switches connected to NativeBridge.setFeature().
+}
+```
+
+---
+
+## 6. `CMakeLists.txt`
+
+```cmake
+cmake_minimum_required(VERSION 3.18)
+project(injector)
+add_library(injector SHARED injector.cpp)
+target_link_libraries(injector log)
+```
+
+---
+
+## 7. `offsets.h` — Offsets & Hex Payloads
+
+```cpp
+#pragma once
+#include <cstdint>
+
+#define TARGET_LIB "libil2cpp.so"
+
+namespace Offsets {
+    struct Feature {
+        uint64_t offset;
+        uint8_t  bytes[8];
+        uint8_t  size;
+        uint8_t  orig[8];
+        bool     orig_captured;
+    };
+
+    static Feature FEATURES[] = {
+        /* 0 God Mode      */ { 0x3A5F1C0, {0xFF, 0x7F, 0x4F, 0x46}, 4, {0x00, 0x00, 0x00, 0x00}, false },
+        /* 1 Infinite Ammo */ { 0x3A61A44, {0x00, 0x00, 0x40, 0x46}, 4, {0x00, 0x00, 0x00, 0x00}, false },
+        /* 2 No Recoil     */ { 0x1C2E5A0, {0x00, 0x00, 0x00, 0x00}, 4, {0x00, 0x00, 0x00, 0x00}, false },
+        /* 3 Speed Hack    */ { 0x2F8A120, {0x00, 0x00, 0x04, 0x3F}, 4, {0x00, 0x00, 0x00, 0x00}, false },
+        /* 4 Teleport      */ { 0x3B10078, {0x00, 0x00, 0x00, 0x00}, 4, {0x00, 0x00, 0x00, 0x00}, false },
+        /* 5 Anti-Aim      */ { 0x2D44C90, {0xC0, 0x3F, 0x00, 0x00}, 4, {0x00, 0x00, 0x00, 0x00}, false },
+        /* 6 Radar Hack    */ { 0x4A82E10, {0x01, 0x00, 0x00, 0x00}, 4, {0x00, 0x00, 0x00, 0x00}, false },
+        /* 7 Magic Bullet  */ { 0x5021D4C, {0x01, 0x00, 0x00, 0x00}, 4, {0x00, 0x00, 0x00, 0x00}, false },
+    };
+    static const int FEATURE_COUNT = sizeof(FEATURES) / sizeof(FEATURES[0]);
+}
+```
+
+---
+
+## 8. `injector.cpp` — Native Memory Engine
+
+```cpp
+// Parses /proc/[pid]/maps for TARGET_LIB base address.
+// Opens /proc/[pid]/mem with O_RDWR.
+// Captures original memory snapshots and restores them on toggle OFF.
+// Runs background pthread persistence loop (300ms interval).
+```
